@@ -64,8 +64,8 @@ button:focus-visible,input:focus-visible{outline:3px solid #E8A33D;outline-offse
 {
 const API='https://ufjvmpujxxkdupyjowxa.supabase.co/rest/v1/';
 const H={apikey:'sb_publishable_l39LhxStRQLGTMXw0HgPZQ_HidKNxJE','Content-Type':'application/json'};
-const PIC={fer:'fer.jpg',zak:'zak.jpg'};
-const ROUTE={fernando:'fer',zakariya:'zak'};
+const PIC={fer:'fer.jpg',zak:'zak.jpg',tan:'tan.jpg'};
+const ROUTE={fernando:'fer',zakariya:'zak',tania:'tan'};
 const seg=location.pathname.replace(/\/+$/,'').split('/').pop().toLowerCase();
 const me=ROUTE[seg];
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
@@ -78,8 +78,11 @@ const fmt=n=>Number(n).toFixed(3);
 const I={send:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',req:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>',scan:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>',back:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',x:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',face:'<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#0B6B51" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16c1.6 1.2 4.4 1.2 6 0"/></svg>',check:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>'};
 
 let A={},TX=[],RQ=[],ui={scr:'lock',mode:'send',amt:'',msg:'',req:null,toast:'',busy:false},fid=false,notes=[],loaded=false;
-const other=()=>me==='fer'?'zak':'fer';
-const ACCN={fer:['4410','9032'],zak:['7721','3318']};
+const others=()=>['fer','zak','tan'].filter(x=>x!==me&&A[x]);
+const other=()=>ui.to||others()[0];
+const names=ks=>ks.map(k=>esc(A[k]?.name||'')).join(ks.length>2?', ':' and ');
+const stack=(ks,sz)=>`<div style="display:flex;justify-content:center">${ks.map((k,i)=>`<span style="display:inline-flex;margin-left:${i?-Math.round(sz*.3):0}px">${av(k,sz)}</span>`).join('')}</div>`;
+const ACCN={fer:['4410','9032'],zak:['7721','3318'],tan:['5106','2287']};
 const DEMO_CARDS=[{b:'Visa',l:'4821'},{b:'Mastercard',l:'1907'},{b:'Visa',l:'6630'}];
 let PR;try{PR=JSON.parse(store.get('zaks-prof-'+me))}catch(e){}
 PR=Object.assign({from:'cur',to:'cur',card:null,lang:'en',notif:true,fid:true},PR||{});
@@ -89,7 +92,8 @@ const t=s=>(PR.lang==='ar'&&AR[s])||s;
 const accLabel=id=>`${esc(A[me]?.bank||'')} · ${id==='sav'?'Savings':'Current'} •• ${(ACCN[me]||['0000','0000'])[id==='sav'?1:0]}`;
 const sw=(on,k,label)=>`<button class="li" role="switch" aria-checked="${on}" data-act="ptog" data-k="${k}" style="cursor:pointer"><div class="x"><b style="font-size:15px">${label}</b></div><span aria-hidden="true" style="width:46px;height:28px;border-radius:14px;flex:none;position:relative;background:${on?'#0B6B51':'#C9CFC8'}"><span style="position:absolute;top:3px;${on?'right':'left'}:3px;width:22px;height:22px;border-radius:11px;background:#fff"></span></span></button>`;
 const radio=(on,k,v,label)=>`<button class="li" role="radio" aria-checked="${on}" data-act="pacc" data-k="${k}" data-v="${v}" style="cursor:pointer;${on?'box-shadow:inset 0 0 0 2px #0B6B51;background:#EAF6F0':''}"><div class="x"><b style="font-size:15px">${label}</b></div><span aria-hidden="true" style="width:22px;height:22px;border-radius:11px;flex:none;${on?'background:#0B6B51;box-shadow:inset 0 0 0 5px #EAF6F0,0 0 0 2px #0B6B51':'border:2px solid #B8C2BD'}"></span></button>`;
-const half=a=>Math.round(a/2*1000)/1000;
+const share=(a,n)=>Math.round(a/(n+1)*1000)/1000;
+const selOf=()=>ui.split?ui.sel:[other()];
 const av=(w,sz)=>`<img class="av" src="${PIC[w]}" alt="${esc(A[w]?.name||'')}"${sz?` style="width:${sz}px;height:${sz}px;border-radius:${sz/2}px"`:''}>`;
 
 async function get(path){const r=await fetch(API+path,{headers:H,cache:'no-store'});if(!r.ok)throw new Error(r.status);return r.json()}
@@ -113,13 +117,13 @@ async function load(){
 }
 
 function homeScr(){
-  const o=other(),inc=RQ.filter(r=>r.to_id===me&&r.status==='pending'),last=TX.find(t=>t.from_id===o||t.to_id===o);
-  const tag=last?(last.from_id===me?'Last paid · '+fmt(last.amount):'Paid you · '+fmt(last.amount)):'★ Favourite';
+  const inc=RQ.filter(r=>r.to_id===me&&r.status==='pending');
+  const tag=o=>{const last=TX.find(t=>t.from_id===o||t.to_id===o);return last?(last.from_id===me?'Last paid · '+fmt(last.amount):'Paid you · '+fmt(last.amount)):'★ Favourite'};
   return `<div class="scr" style="padding-bottom:120px"><div class="hd"><img src="logo-full.png" alt="zaks" style="height:30px;width:auto"><button data-act="prof" aria-label="${t('Profile')}" style="border:none;background:none;padding:0;cursor:pointer;border-radius:50%">${av(me)}</button></div>
   ${(PR.notif?notes:[]).slice(0,3).map((n,i)=>`<div class="nt pop" role="status">${av(n.p,40)}<div class="x"><b>${esc(n.t)}</b>${n.m?`<span style="opacity:.8">“${esc(n.m)}”</span>`:''}</div><button data-act="dismiss" data-i="${i}" aria-label="Dismiss">${I.x}</button></div>`).join('')}
   ${inc.map(r=>`<div class="req pop"><div style="display:flex;gap:12px;align-items:center">${av(r.from_id)}<div style="flex:1"><b>${esc(A[r.from_id]?.name)}</b> ${t('asks for')}<div class="amt" style="font-size:20px">OMR ${fmt(r.amount)}</div>${r.msg?`<span class="sm">“${esc(r.msg)}”</span>`:''}</div></div><div class="grid"><button class="btn alt" data-act="decline" data-r="${r.id}">${t('Decline')}</button><button class="btn" data-act="payreq" data-r="${r.id}">${t('Pay')}</button></div></div>`).join('')}
-  <div class="grid"><button class="t g" data-act="quick"><span style="display:inline-flex;padding:3px;border-radius:50%;background:#fff;align-self:flex-start">${av(o,52)}</span><span style="display:flex;flex-direction:column;gap:5px"><b>${esc(A[o]?.name||'')}</b><span style="background:#E0C08A;color:#14201C;font-weight:700;font-size:11px;padding:3px 8px;border-radius:999px;align-self:flex-start">${tag}</span></span></button>
-  <button class="t m" data-act="split"><b>${t('Split a bill')}</b><span>${t('Request from friends')}</span></button></div>
+  <div class="grid">${others().map(o=>`<button class="t g" data-act="quick" data-p="${o}"><span style="display:inline-flex;padding:3px;border-radius:50%;background:#fff;align-self:flex-start">${av(o,52)}</span><span style="display:flex;flex-direction:column;gap:5px"><b>${esc(A[o]?.name||'')}</b><span style="background:#E0C08A;color:#14201C;font-weight:700;font-size:11px;padding:3px 8px;border-radius:999px;align-self:flex-start">${tag(o)}</span></span></button>`).join('')}
+  <button class="t m" style="grid-column:1/-1;min-height:76px" data-act="split"><b>${t('Split a bill')}</b><span>${t('Request from friends')}</span></button></div>
   <div class="bank"><div style="display:flex;flex-direction:column"><span class="sm">${t('Pay from')}</span><b>${accLabel(PR.from)}</b></div><span class="amt">OMR ${A[me]?fmt(A[me].balance):'…'}</span></div>
   <span class="lbl"><span class="dot"></span>${t('Activity')}</span>
   ${TX.length?TX.slice(0,10).map(t=>{const out=t.from_id===me,p=out?t.to_id:t.from_id;return `<div class="li">${av(p)}<div class="x"><b style="font-size:15px">${out?'To':'From'} ${esc(A[p]?.name)}</b><span class="sm">${esc(t.msg||'')}${t.msg?' · ':''}${new Date(t.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span></div><span class="amt" style="color:${out?'#14201C':'#0B5A44'}">${out?'−':'+'}${fmt(t.amount)}</span></div>`}).join(''):`<span class="sm">${t('Nothing yet. Tap Send to pay someone.')}</span>`}
@@ -135,25 +139,26 @@ function render(){
   }else if(ui.scr==='home'){h=homeScr()}
   else if(ui.scr==='pick'){
     h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button><b>${t(ui.mode==='send'?'Send to':ui.split?'Split a bill with':'Request from')}</b><span style="width:44px"></span></div>
-    <span class="lbl">${t('Suggested')}</span><button class="li" data-act="pick" style="cursor:pointer">${av(o)}<div class="x"><b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div></button></div>`;
+    <span class="lbl">${t('Suggested')}</span>${others().map(x=>{const on=ui.split&&ui.sel.includes(x);return `<button class="li" data-act="${ui.split?'tog':'pick'}" data-p="${x}" aria-pressed="${on}" style="cursor:pointer;${on?'box-shadow:inset 0 0 0 2px #0B6B51;background:#EAF6F0':''}">${av(x)}<div class="x"><b>${esc(A[x].name)}</b><span class="sm">${esc(A[x].phone)}</span></div>${ui.split?`<span aria-hidden="true" style="width:26px;height:26px;border-radius:13px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;${on?'background:#0B6B51;color:#fff':'border:2px solid #B8C2BD'}">${on?'✓':''}</span>`:''}</button>`}).join('')}
+    ${ui.split?`<span class="sm">Tap everyone who shared the bill. You are counted automatically.</span><div style="flex:1"></div><button class="btn" data-act="picknext" ${ui.sel.length?'':'disabled'}>${ui.sel.length?`Continue with ${ui.sel.length} ${ui.sel.length>1?'people':'person'}`:'Select people'}</button>`:''}</div>`;
   }else if(ui.scr==='amt'){
-    const ok=parseFloat(ui.amt)>0;
+    const ok=parseFloat(ui.amt)>0,ks=selOf(),n=ks.length;
     h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Back">${I.back}</button><b>${t(ui.mode==='send'?'Send to':ui.split?'Split a bill with':'Request from')}</b><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button></div>
-    <div class="who">${av(o,72)}<b>${esc(A[o].name)}</b><span class="sm">${ui.split?'Enter the total bill. It is split 2 ways, including you.':esc(A[o].phone)}</span></div>
-    <div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center"><div class="bigamt" style="color:${ui.amt?'#14201C':'#A9B1AC'}">${esc(ui.amt||'0')}<small>OMR</small></div>${ui.split&&ok?`<span class="sm" style="font-weight:600;color:#0B6B51">Each pays OMR ${fmt(half(+ui.amt))} · ÷ 2 incl. you</span>`:''}</div>
+    <div class="who">${n>1?stack(ks,60):av(ks[0],72)}<b>${names(ks)}</b><span class="sm">${ui.split?`Enter the total bill. It is split ${n+1} ways, including you.`:esc(A[ks[0]].phone)}</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center"><div class="bigamt" style="color:${ui.amt?'#14201C':'#A9B1AC'}">${esc(ui.amt||'0')}<small>OMR</small></div>${ui.split&&ok?`<span class="sm" style="font-weight:600;color:#0B6B51">Each pays OMR ${fmt(share(+ui.amt,n))} · ÷ ${n+1} incl. you</span>`:''}</div>
     <div class="msgrow"><input id="msg" placeholder="${t('Add a message …')}" value="${esc(ui.msg)}" aria-label="Message" maxlength="60"><button class="btn" data-act="next" ${ok?'':'disabled'}>${t('Next')}</button></div>
     <div class="pad">${['1','2','3','4','5','6','7','8','9','.','0','del'].map(k=>`<button class="${k==='.'||k==='del'?'k':''}" data-act="key" data-k="${k}" aria-label="${k==='del'?'Delete':k}">${k==='del'?'⌫':k}</button>`).join('')}</div></div>`;
   }else if(ui.scr==='confirm'){
-    const send=ui.mode==='send',a=ui.split&&!send?half(+ui.amt):+ui.amt;
+    const send=ui.mode==='send',ks=ui.req?[o]:selOf(),n=ks.length,a=ui.split&&!send?share(+ui.amt,n):+ui.amt;
     h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="${ui.req?'home':'backamt'}" aria-label="Back">${I.back}</button><b>${t('Confirm')}</b><span style="width:44px"></span></div>
-    <div class="who" style="margin-top:16px">${av(o,72)}<b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div>
-    <div class="bigamt">${fmt(a)}<small>OMR</small></div>${ui.split&&!send?`<span class="sm" style="text-align:center">each · total bill OMR ${fmt(+ui.amt)} split 2 ways incl. you</span>`:''}
+    <div class="who" style="margin-top:16px">${n>1?stack(ks,64):av(ks[0],72)}<b>${names(ks)}</b><span class="sm">${ks.map(k=>esc(A[k].phone)).join(' · ')}</span></div>
+    <div class="bigamt">${fmt(a)}<small>OMR</small></div>${ui.split&&!send?`<span class="sm" style="text-align:center">each · total bill OMR ${fmt(+ui.amt)} split ${n+1} ways incl. you</span>`:''}
     ${ui.msg?`<p class="sm" style="text-align:center;margin:0">“${esc(ui.msg)}”</p>`:''}
     <div class="li"><div class="x"><span class="sm">${t(send?'From':'Paid into')}</span><b>${accLabel(send?PR.from:PR.to)}</b></div></div>
-    <span class="sm" style="text-align:center">${send?t('Instant and free to any bank in Oman.'):`${esc(A[o].name)} gets the request in Zaks.`}</span>
-    <div style="flex:1"></div><button class="btn" data-act="${send?'dosend':'doreq'}" ${ui.busy?'disabled':''}>${send?`Send ${fmt(a)} OMR`:t('Send request')}</button></div>`;
+    <span class="sm" style="text-align:center">${send?t('Instant and free to any bank in Oman.'):`${names(ks)} ${n>1?'each get':'gets'} the request in Zaks.`}</span>
+    <div style="flex:1"></div><button class="btn" data-act="${send?'dosend':'doreq'}" ${ui.busy?'disabled':''}>${send?`Send ${fmt(a)} OMR`:(n>1?`Send ${n} requests`:t('Send request'))}</button></div>`;
   }else if(ui.scr==='done'){
-    h=`<div class="scr" style="justify-content:center;gap:16px;text-align:center;min-height:100vh"><div style="position:relative;width:96px;margin:0 auto">${av(o,96)}<span class="ok">${I.check}</span></div><b style="font-size:22px">${esc(ui.doneT)}</b><span class="sm">${esc(ui.doneS)}</span><div style="height:40px"></div><button class="btn" data-act="home">${t('Done')}</button></div>`;
+    h=`<div class="scr" style="justify-content:center;gap:16px;text-align:center;min-height:100vh"><div style="position:relative;width:96px;margin:0 auto">${av(ui.doneP||o,96)}<span class="ok">${I.check}</span></div><b style="font-size:22px">${esc(ui.doneT)}</b><span class="sm">${esc(ui.doneS)}</span><div style="height:40px"></div><button class="btn" data-act="home">${t('Done')}</button></div>`;
   }
   else if(ui.scr==='prof'){
     const inp=(id,label,val,type)=>`<label style="display:flex;flex-direction:column;gap:4px"><span class="sm">${label}</span><input id="${id}" type="${type}" value="${esc(val)}" maxlength="${type==='tel'?20:30}" style="height:48px;border-radius:12px;border:1px solid #D5DAD3;background:#fff;padding:0 14px;font-size:16px;color:#14201C"></label>`;
@@ -191,8 +196,10 @@ document.addEventListener('click',async e=>{
   switch(d.act){
     case 'unlock':faceid(async()=>{ui.scr='home';await load()});return;
     case 'home':reset0();break;
-    case 'go':Object.assign(ui,{scr:'pick',mode:d.m,split:false,amt:'',msg:'',req:null});break;
-    case 'split':Object.assign(ui,{scr:'amt',mode:'req',split:true,amt:'',msg:'',req:null});break;
+    case 'go':Object.assign(ui,{scr:'pick',mode:d.m,split:false,to:null,amt:'',msg:'',req:null});break;
+    case 'split':Object.assign(ui,{scr:'pick',mode:'req',split:true,sel:[],amt:'',msg:'',req:null});break;
+    case 'tog':{const i=ui.sel.indexOf(d.p);i<0?ui.sel.push(d.p):ui.sel.splice(i,1);break}
+    case 'picknext':ui.scr='amt';break;
     case 'prof':ui.scr='prof';break;
     case 'psave':{const clean=v=>v.replace(/[<>&"'`]/g,'').trim();const n=clean(document.getElementById('pf-name').value).slice(0,30),ph=clean(document.getElementById('pf-phone').value).slice(0,20);
       if(!n||ph.replace(/\D/g,'').length<8){ui.toast='Enter a name and a valid mobile number.';break}
@@ -204,8 +211,8 @@ document.addEventListener('click',async e=>{
     case 'plang':PR.lang=d.v;saveP();break;
     case 'ptog':PR[d.k]=!PR[d.k];saveP();break;
     case 'signout':Object.assign(ui,{scr:'lock',amt:'',msg:'',req:null,split:false});break;
-    case 'quick':Object.assign(ui,{scr:'amt',mode:'send',split:false,amt:'',msg:'',req:null});break;
-    case 'pick':ui.scr='amt';break;
+    case 'quick':Object.assign(ui,{scr:'amt',mode:'send',split:false,to:d.p,amt:'',msg:'',req:null});break;
+    case 'pick':ui.to=d.p;ui.scr='amt';break;
     case 'backamt':ui.scr='amt';break;
     case 'scan':ui.toast='Scan a shop QR to pay: coming later.';break;
     case 'key':{let a=ui.amt,k=d.k;
@@ -216,15 +223,15 @@ document.addEventListener('click',async e=>{
       if(parseFloat(a)>5000)break;
       ui.amt=a;break}
     case 'next':ui.scr='confirm';break;
-    case 'payreq':{const r=RQ.find(x=>x.id===+d.r);Object.assign(ui,{scr:'confirm',mode:'send',amt:String(r.amount),msg:r.msg||'',req:r.id});break}
+    case 'payreq':{const r=RQ.find(x=>x.id===+d.r);Object.assign(ui,{scr:'confirm',mode:'send',split:false,to:r.from_id,amt:String(r.amount),msg:r.msg||'',req:r.id});break}
     case 'dosend':{const a=+ui.amt;ui.busy=true;faceid(async()=>{
       try{const res=await rpc('zaks_send',{p_to:other(),p_amount:a,p_msg:ui.msg,p_req:ui.req});
         if(res==='insufficient'){reset0();ui.toast='Not enough money in your bank account.'}
-        else Object.assign(ui,{scr:'done',doneT:`${fmt(a)} OMR sent`,doneS:`${A[other()].name} has it now in ${A[other()].bank}.`,amt:'',msg:'',req:null,busy:false});
+        else Object.assign(ui,{scr:'done',doneP:other(),doneT:`${fmt(a)} OMR sent`,doneS:`${A[other()].name} has it now in ${A[other()].bank}.`,amt:'',msg:'',req:null,busy:false});
       }catch(err){reset0();ui.toast='Payment failed: '+err.message}
       load()});return}
     case 'doreq':{const a=+ui.amt;ui.busy=true;render();
-      try{await rpc('zaks_request',{p_to:other(),p_amount:ui.split?half(a):a,p_msg:ui.msg});Object.assign(ui,{scr:'done',doneT:'Request sent',doneS:`${A[other()].name} gets it in Zaks right away.`,amt:'',msg:'',busy:false})}
+      try{const ks=selOf(),each=ui.split?share(a,ks.length):a;for(const k of ks)await rpc('zaks_request',{p_to:k,p_amount:each,p_msg:ui.msg});Object.assign(ui,{scr:'done',doneP:ks[0],doneT:ks.length>1?`${ks.length} requests sent`:'Request sent',doneS:`${names(ks)} ${ks.length>1?'each get':'gets'} OMR ${fmt(each)} request in Zaks.`,amt:'',msg:'',busy:false,split:false})}
       catch(err){reset0();ui.toast='Request failed: '+err.message}
       load();break}
     case 'decline':try{await rpc('zaks_decline',{p_req:+d.r})}catch(err){ui.toast='Failed: '+err.message}await load();break;
