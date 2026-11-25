@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B6B51">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zaks">
+<title>Zaks</title>
+<base href="/zaks-demo/">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@800&display=swap">
+<style>
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#F7F8F5;color:#14201C;font:16px/1.45 Inter,system-ui,sans-serif}
+button,input{font:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid #E8A33D;outline-offset:2px}
+#app{max-width:480px;margin:0 auto;min-height:100%;position:relative;display:flex;flex-direction:column}
+.scr{flex:1;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));gap:14px}
+.hd{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.av{width:44px;height:44px;border-radius:22px;object-fit:cover;flex:none;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15);background:#DDE2DC}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.t{border:none;border-radius:20px;padding:14px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:8px;min-height:130px;cursor:pointer;font:inherit}
+.t.g{background:linear-gradient(150deg,#0E7A5C,#0B5A44);color:#fff}.t.m{background:#DDF0E8;color:#14201C}
+.t b{font-size:17px}.t span{font-size:12px}
+.li{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:12px 14px;border:none;width:100%;text-align:left;font:inherit;color:inherit}
+.li .x{flex:1;display:flex;flex-direction:column}
+.sm{font-size:13px;color:#4F5B56}.lbl{font-size:13px;font-weight:600;color:#4F5B56}
+.amt{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700}
+.pillnav{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;background:#0B6B51;border-radius:999px;padding:6px;gap:2px;box-shadow:0 12px 24px -10px rgba(11,107,81,.6);z-index:2}
+.pillnav button{border:none;background:transparent;color:#fff;font-weight:600;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:76px;min-height:54px;justify-content:center;border-radius:999px;cursor:pointer}
+.ic{width:22px;height:22px}
+.btn{border:none;border-radius:999px;min-height:54px;padding:0 22px;font-weight:700;font-size:16px;cursor:pointer;color:#fff;background:#0B6B51;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.alt{background:#fff;color:#14201C;border:1px solid #D5DAD3}
+.btn:disabled{background:#C9CFC8;cursor:not-allowed}
+.iconbtn{width:44px;height:44px;border-radius:22px;border:none;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#14201C}
+.who{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.bigamt{font-family:'Inter Tight',Inter,sans-serif;font-weight:800;font-size:clamp(44px,14vw,60px);text-align:center;letter-spacing:-1px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bigamt small{font-size:.42em;margin-left:6px}
+.msgrow{display:flex;gap:8px}
+.msgrow input{flex:1;height:50px;border-radius:999px;border:none;background:#ECEFEA;padding:0 16px;font-size:16px;color:#14201C}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#E3E6E1;margin:0 -18px calc(-18px - env(safe-area-inset-bottom));padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+.pad button{min-height:52px;border:none;border-radius:8px;background:#fff;font-size:24px;font-weight:500;cursor:pointer;color:#14201C}
+.pad button.k{background:transparent}
+.ov{position:fixed;inset:0;background:rgba(20,32,28,.35);display:flex;align-items:center;justify-content:center;z-index:5}
+.fid{width:140px;height:140px;border-radius:24px;background:rgba(245,246,243,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px}
+.ok{position:absolute;right:-10px;bottom:-6px;width:40px;height:40px;border-radius:20px;background:#0B6B51;color:#fff;display:flex;align-items:center;justify-content:center;border:3px solid #F7F8F5}
+.req{background:#fff;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;border:2px solid #0B6B51}
+.nt{background:#14201C;color:#fff;border-radius:18px;padding:12px;display:flex;gap:12px;align-items:center}
+.nt .x{flex:1;display:flex;flex-direction:column;font-size:14px}
+.nt button{background:transparent;border:none;color:#fff;width:44px;height:44px;cursor:pointer}
+.toast{position:fixed;left:18px;right:18px;bottom:110px;max-width:444px;margin:0 auto;background:#14201C;color:#fff;border-radius:14px;padding:12px 14px;font-size:14px;z-index:3}
+.bank{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:16px;padding:12px 14px}
+.dot{width:8px;height:8px;border-radius:4px;background:#2BB673;display:inline-block;margin-right:6px}
+@media(prefers-reduced-motion:no-preference){.scan{animation:sc .7s ease-in-out infinite alternate}@keyframes sc{from{transform:scale(.9);opacity:.6}to{transform:scale(1.05);opacity:1}}.pop{animation:pp .4s ease}@keyframes pp{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+{
+const API='https://ufjvmpujxxkdupyjowxa.supabase.co/rest/v1/';
+const H={apikey:'sb_publishable_l39LhxStRQLGTMXw0HgPZQ_HidKNxJE','Content-Type':'application/json'};
+const PIC={fer:'fer.jpg',zak:'zak.jpg'};
+const ROUTE={fernando:'fer',zakariya:'zak'};
+const seg=location.pathname.replace(/\/+$/,'').split('/').pop().toLowerCase();
+const me=ROUTE[seg];
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const qk=new URLSearchParams(location.search).get('k');
+if(me&&qk)store.set('zaks-k-'+me,qk);
+const KEY=me?store.get('zaks-k-'+me):null;
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Number(n).toFixed(3);
+const I={send:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',req:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>',scan:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>',back:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',x:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',face:'<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#0B6B51" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16c1.6 1.2 4.4 1.2 6 0"/></svg>',check:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>'};
+
+let A={},TX=[],RQ=[],ui={scr:'lock',mode:'send',amt:'',msg:'',req:null,toast:'',busy:false},fid=false,notes=[],loaded=false;
+const other=()=>me==='fer'?'zak':'fer';
+const av=(w,sz)=>`<img class="av" src="${PIC[w]}" alt="${esc(A[w]?.name||'')}"${sz?` style="width:${sz}px;height:${sz}px;border-radius:${sz/2}px"`:''}>`;
+
+async function get(path){const r=await fetch(API+path,{headers:H,cache:'no-store'});if(!r.ok)throw new Error(r.status);return r.json()}
+async function rpc(fn,body){const r=await fetch(API+'rpc/'+fn,{method:'POST',headers:H,body:JSON.stringify({p_id:me,p_k:KEY,...body})});const j=await r.json().catch(()=>null);if(!r.ok)throw new Error(j?.message||r.status);return j}
+
+async function load(){
+  try{
+    const [acc,tx,rq]=await Promise.all([get('accounts?select=id,name,phone,bank,balance'),get(`txs?select=*&or=(from_id.eq.${me},to_id.eq.${me})&order=id.desc&limit=20`),get(`requests?select=*&or=(from_id.eq.${me},to_id.eq.${me})&order=id.desc&limit=20`)]);
+    A=Object.fromEntries(acc.map(a=>[a.id,a]));
+    const seen=+(store.get('zaks-seen-'+me)||0);
+    if(loaded){
+      tx.filter(t=>t.to_id===me&&t.id>seen).forEach(t=>notes.unshift({p:t.from_id,t:`You received OMR ${fmt(t.amount)} from ${A[t.from_id].name}`,m:t.msg}));
+      const oldIds=new Set(RQ.map(r=>r.id));
+      rq.filter(r=>r.to_id===me&&r.status==='pending'&&!oldIds.has(r.id)).forEach(r=>notes.unshift({p:r.from_id,t:`${A[r.from_id].name} requests OMR ${fmt(r.amount)}`,m:r.msg}));
+      if(notes.length&&navigator.vibrate)try{navigator.vibrate(120)}catch(e){}
+    }
+    if(tx.length)store.set('zaks-seen-'+me,Math.max(seen,...tx.filter(t=>t.to_id===me).map(t=>t.id),0));
+    TX=tx;RQ=rq;loaded=true;
+    if(ui.scr==='home'||ui.scr==='lock')render();
+  }catch(e){console.log('load failed',e)}
+}
+
+function homeScr(){
+  const o=other(),inc=RQ.filter(r=>r.to_id===me&&r.status==='pending'),last=TX.find(t=>t.from_id===o||t.to_id===o);
+  const tag=last?(last.from_id===me?'Last paid · '+fmt(last.amount):'Paid you · '+fmt(last.amount)):'★ Favourite';
+  return `<div class="scr" style="padding-bottom:120px"><div class="hd"><img src="logo-full.png" alt="zaks" style="height:30px;width:auto">${av(me)}</div>
+  ${notes.slice(0,3).map((n,i)=>`<div class="nt pop" role="status">${av(n.p,40)}<div class="x"><b>${esc(n.t)}</b>${n.m?`<span style="opacity:.8">“${esc(n.m)}”</span>`:''}</div><button data-act="dismiss" data-i="${i}" aria-label="Dismiss">${I.x}</button></div>`).join('')}
+  ${inc.map(r=>`<div class="req pop"><div style="display:flex;gap:12px;align-items:center">${av(r.from_id)}<div style="flex:1"><b>${esc(A[r.from_id]?.name)}</b> asks for<div class="amt" style="font-size:20px">OMR ${fmt(r.amount)}</div>${r.msg?`<span class="sm">“${esc(r.msg)}”</span>`:''}</div></div><div class="grid"><button class="btn alt" data-act="decline" data-r="${r.id}">Decline</button><button class="btn" data-act="payreq" data-r="${r.id}">Pay</button></div></div>`).join('')}
+  <div class="grid"><button class="t g" data-act="quick"><span style="display:inline-flex;padding:3px;border-radius:50%;background:#fff;align-self:flex-start">${av(o,52)}</span><span style="display:flex;flex-direction:column;gap:5px"><b>${esc(A[o]?.name||'')}</b><span style="background:#E0C08A;color:#14201C;font-weight:700;font-size:11px;padding:3px 8px;border-radius:999px;align-self:flex-start">${tag}</span></span></button>
+  <button class="t m" data-act="go" data-m="req"><b>Split a bill</b><span>Request money from ${esc(A[o]?.name||'')}</span></button></div>
+  <div class="bank"><div style="display:flex;flex-direction:column"><span class="sm">Linked bank</span><b>${esc(A[me]?.bank||'')}</b></div><span class="amt">OMR ${A[me]?fmt(A[me].balance):'…'}</span></div>
+  <span class="lbl"><span class="dot"></span>Activity · live</span>
+  ${TX.length?TX.slice(0,10).map(t=>{const out=t.from_id===me,p=out?t.to_id:t.from_id;return `<div class="li">${av(p)}<div class="x"><b style="font-size:15px">${out?'To':'From'} ${esc(A[p]?.name)}</b><span class="sm">${esc(t.msg||'')}${t.msg?' · ':''}${new Date(t.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span></div><span class="amt" style="color:${out?'#14201C':'#0B5A44'}">${out?'−':'+'}${fmt(t.amount)}</span></div>`}).join(''):'<span class="sm">Nothing yet. Tap Send to pay someone.</span>'}
+  <button class="btn alt" data-act="reset" style="margin-top:12px;min-height:44px;font-size:13px">Reset game (balances back to start)</button>
+  </div>${ui.toast?`<div class="toast" role="status">${esc(ui.toast)}</div>`:''}
+  <nav class="pillnav" aria-label="Pay actions"><button data-act="go" data-m="send">${I.send}Send</button><button data-act="go" data-m="req">${I.req}Request</button><button data-act="scan">${I.scan}Scan</button></nav>`;
+}
+
+function render(){
+  const o=other();let h='';
+  if(!me||!KEY){app.innerHTML=`<div class="scr" style="justify-content:center;align-items:center;text-align:center;gap:16px"><img src="logo-stack.png" alt="zaks" style="width:200px"><b>Open your personal Zaks link.</b><span class="sm">This demo works with the link you were sent.</span></div>`;return}
+  if(ui.scr==='lock'){
+    h=`<div class="scr" style="justify-content:center;align-items:center;gap:22px;background:#DDF0E8;min-height:100vh"><img src="logo-stack.png" alt="zaks" style="width:200px;max-width:60%">${av(me,96)}<b style="font-size:20px">Hi, ${esc(A[me]?.name||'')}</b><button class="btn" data-act="unlock">Unlock with Face ID</button><span class="sm">Demo · play money only</span></div>`;
+  }else if(ui.scr==='home'){h=homeScr()}
+  else if(ui.scr==='pick'){
+    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button><b>${ui.mode==='send'?'Send to':'Request from'}</b><span style="width:44px"></span></div>
+    <span class="lbl">Suggested</span><button class="li" data-act="pick" style="cursor:pointer">${av(o)}<div class="x"><b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div></button></div>`;
+  }else if(ui.scr==='amt'){
+    const ok=parseFloat(ui.amt)>0;
+    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Back">${I.back}</button><b>${ui.mode==='send'?'Send to':'Request from'}</b><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button></div>
+    <div class="who">${av(o,72)}<b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center"><div class="bigamt" style="color:${ui.amt?'#14201C':'#A9B1AC'}">${esc(ui.amt||'0')}<small>OMR</small></div></div>
+    <div class="msgrow"><input id="msg" placeholder="Add a message …" value="${esc(ui.msg)}" aria-label="Message" maxlength="60"><button class="btn" data-act="next" ${ok?'':'disabled'}>Next</button></div>
+    <div class="pad">${['1','2','3','4','5','6','7','8','9','.','0','del'].map(k=>`<button class="${k==='.'||k==='del'?'k':''}" data-act="key" data-k="${k}" aria-label="${k==='del'?'Delete':k}">${k==='del'?'⌫':k}</button>`).join('')}</div></div>`;
+  }else if(ui.scr==='confirm'){
+    const a=+ui.amt,send=ui.mode==='send';
+    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="${ui.req?'home':'backamt'}" aria-label="Back">${I.back}</button><b>Confirm</b><span style="width:44px"></span></div>
+    <div class="who" style="margin-top:16px">${av(o,72)}<b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div>
+    <div class="bigamt">${fmt(a)}<small>OMR</small></div>
+    ${ui.msg?`<p class="sm" style="text-align:center;margin:0">“${esc(ui.msg)}”</p>`:''}
+    <div class="li"><div class="x"><span class="sm">${send?'From':'Paid into'}</span><b>${esc(A[me].bank)} · current account</b></div></div>
+    <span class="sm" style="text-align:center">${send?'Instant and free to any bank in Oman.':`${esc(A[o].name)} gets the request in Zaks.`}</span>
+    <div style="flex:1"></div><button class="btn" data-act="${send?'dosend':'doreq'}" ${ui.busy?'disabled':''}>${send?`Send ${fmt(a)} OMR`:'Send request'}</button></div>`;
+  }else if(ui.scr==='done'){
+    h=`<div class="scr" style="justify-content:center;gap:16px;text-align:center;min-height:100vh"><div style="position:relative;width:96px;margin:0 auto">${av(o,96)}<span class="ok">${I.check}</span></div><b style="font-size:22px">${esc(ui.doneT)}</b><span class="sm">${esc(ui.doneS)}</span><div style="height:40px"></div><button class="btn" data-act="home">Done</button></div>`;
+  }
+  if(fid)h+=`<div class="ov"><div class="fid"><span class="scan">${I.face}</span>Face ID</div></div>`;
+  const keepMsg=document.getElementById('msg');const focused=keepMsg&&document.activeElement===keepMsg;
+  app.innerHTML=h;
+  if(focused){const m=document.getElementById('msg');m.focus();m.setSelectionRange(m.value.length,m.value.length)}
+}
+
+function faceid(fn){fid=true;render();setTimeout(async()=>{fid=false;await fn();render()},800)}
+const reset0=()=>Object.assign(ui,{scr:'home',amt:'',msg:'',req:null,busy:false});
+
+document.addEventListener('input',e=>{if(e.target.id==='msg')ui.msg=e.target.value.slice(0,60)});
+document.addEventListener('click',async e=>{
+  const el=e.target.closest('[data-act]');if(!el||fid||ui.busy)return;
+  const d=el.dataset;ui.toast='';
+  switch(d.act){
+    case 'unlock':faceid(async()=>{ui.scr='home';await load()});return;
+    case 'home':reset0();break;
+    case 'go':Object.assign(ui,{scr:'pick',mode:d.m,amt:'',msg:'',req:null});break;
+    case 'quick':Object.assign(ui,{scr:'amt',mode:'send',amt:'',msg:'',req:null});break;
+    case 'pick':ui.scr='amt';break;
+    case 'backamt':ui.scr='amt';break;
+    case 'scan':ui.toast='Scan a shop QR to pay: coming later.';break;
+    case 'key':{let a=ui.amt,k=d.k;
+      if(k==='del')a=a.slice(0,-1);
+      else if(k==='.'){if(!a.includes('.'))a=(a||'0')+'.'}
+      else if(a==='0')a=k;
+      else if(!(a.includes('.')&&a.split('.')[1].length>=3))a+=k;
+      if(parseFloat(a)>5000)break;
+      ui.amt=a;break}
+    case 'next':ui.scr='confirm';break;
+    case 'payreq':{const r=RQ.find(x=>x.id===+d.r);Object.assign(ui,{scr:'confirm',mode:'send',amt:String(r.amount),msg:r.msg||'',req:r.id});break}
+    case 'dosend':{const a=+ui.amt;ui.busy=true;faceid(async()=>{
+      try{const res=await rpc('zaks_send',{p_to:other(),p_amount:a,p_msg:ui.msg,p_req:ui.req});
+        if(res==='insufficient'){reset0();ui.toast='Not enough money in your bank account.'}
+        else Object.assign(ui,{scr:'done',doneT:`${fmt(a)} OMR sent`,doneS:`${A[other()].name} has it now in ${A[other()].bank}.`,amt:'',msg:'',req:null,busy:false});
+      }catch(err){reset0();ui.toast='Payment failed: '+err.message}
+      load()});return}
+    case 'doreq':{const a=+ui.amt;ui.busy=true;render();
+      try{await rpc('zaks_request',{p_to:other(),p_amount:a,p_msg:ui.msg});Object.assign(ui,{scr:'done',doneT:'Request sent',doneS:`${A[other()].name} gets it in Zaks right away.`,amt:'',msg:'',busy:false})}
+      catch(err){reset0();ui.toast='Request failed: '+err.message}
+      load();break}
+    case 'decline':try{await rpc('zaks_decline',{p_req:+d.r})}catch(err){ui.toast='Failed: '+err.message}await load();break;
+    case 'dismiss':notes.splice(+d.i,1);break;
+    case 'reset':if(el.dataset.sure!=='1'){el.dataset.sure='1';el.textContent='Tap again to reset for both players';return}
+      try{await rpc('zaks_reset',{})}catch(err){ui.toast='Reset failed: '+err.message}notes=[];await load();break;
+  }
+  render();
+});
+if(me&&KEY){load();setInterval(()=>{if(!document.hidden)load()},2500);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()})}
+render();
+}
+</script>
+</body>
+</html>
