@@ -79,6 +79,17 @@ const I={send:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentCo
 
 let A={},TX=[],RQ=[],ui={scr:'lock',mode:'send',amt:'',msg:'',req:null,toast:'',busy:false},fid=false,notes=[],loaded=false;
 const other=()=>me==='fer'?'zak':'fer';
+const ACCN={fer:['4410','9032'],zak:['7721','3318']};
+const DEMO_CARDS=[{b:'Visa',l:'4821'},{b:'Mastercard',l:'1907'},{b:'Visa',l:'6630'}];
+let PR;try{PR=JSON.parse(store.get('zaks-prof-'+me))}catch(e){}
+PR=Object.assign({from:'cur',to:'cur',card:null,lang:'en',notif:true,fid:true},PR||{});
+const saveP=()=>store.set('zaks-prof-'+me,JSON.stringify(PR));
+const AR={'Send':'إرسال','Request':'طلب','Scan':'مسح','Activity':'النشاط','Split a bill':'تقسيم فاتورة','Request from friends':'اطلب من الأصدقاء','Nothing yet. Tap Send to pay someone.':'لا يوجد شيء بعد. اضغط إرسال للدفع.','Send to':'إرسال إلى','Request from':'طلب من','Split a bill with':'تقسيم فاتورة مع','Suggested':'مقترح','Search by name or number':'ابحث بالاسم أو الرقم','Next':'التالي','Confirm':'تأكيد','Done':'تم','Unlock with Face ID':'افتح باستخدام Face ID','Hi,':'مرحباً،','Profile':'الملف الشخصي','Name':'الاسم','Mobile number':'رقم الجوال','Pay from':'الدفع من','Receive into':'الاستلام في','Card':'البطاقة','Language':'اللغة','Notifications':'الإشعارات','Face ID for payments':'Face ID للمدفوعات','Save changes':'حفظ التغييرات','Sign out':'تسجيل الخروج','Add card':'إضافة بطاقة','Replace card':'استبدال البطاقة','Remove':'إزالة','Bank accounts':'الحسابات البنكية','General':'عام','Personal details':'البيانات الشخصية','Decline':'رفض','Pay':'ادفع','asks for':'يطلب','Add a message …':'أضف رسالة …','Instant and free to any bank in Oman.':'فوري ومجاني إلى أي بنك في عُمان.','From':'من','Paid into':'يُودع في','Send request':'إرسال الطلب','Backup card':'بطاقة احتياطية','No card added. A card is only a backup if your bank is unavailable.':'لا توجد بطاقة. البطاقة احتياطية فقط عند تعذر البنك.','Used only if your bank is unavailable.':'تُستخدم فقط عند تعذر البنك.','Saved':'تم الحفظ'};
+const t=s=>(PR.lang==='ar'&&AR[s])||s;
+const accLabel=id=>`${esc(A[me]?.bank||'')} · ${id==='sav'?'Savings':'Current'} •• ${(ACCN[me]||['0000','0000'])[id==='sav'?1:0]}`;
+const sw=(on,k,label)=>`<button class="li" role="switch" aria-checked="${on}" data-act="ptog" data-k="${k}" style="cursor:pointer"><div class="x"><b style="font-size:15px">${label}</b></div><span aria-hidden="true" style="width:46px;height:28px;border-radius:14px;flex:none;position:relative;background:${on?'#0B6B51':'#C9CFC8'}"><span style="position:absolute;top:3px;${on?'right':'left'}:3px;width:22px;height:22px;border-radius:11px;background:#fff"></span></span></button>`;
+const radio=(on,k,v,label)=>`<button class="li" role="radio" aria-checked="${on}" data-act="pacc" data-k="${k}" data-v="${v}" style="cursor:pointer;${on?'box-shadow:inset 0 0 0 2px #0B6B51;background:#EAF6F0':''}"><div class="x"><b style="font-size:15px">${label}</b></div><span aria-hidden="true" style="width:22px;height:22px;border-radius:11px;flex:none;${on?'background:#0B6B51;box-shadow:inset 0 0 0 5px #EAF6F0,0 0 0 2px #0B6B51':'border:2px solid #B8C2BD'}"></span></button>`;
+const half=a=>Math.round(a/2*1000)/1000;
 const av=(w,sz)=>`<img class="av" src="${PIC[w]}" alt="${esc(A[w]?.name||'')}"${sz?` style="width:${sz}px;height:${sz}px;border-radius:${sz/2}px"`:''}>`;
 
 async function get(path){const r=await fetch(API+path,{headers:H,cache:'no-store'});if(!r.ok)throw new Error(r.status);return r.json()}
@@ -104,55 +115,74 @@ async function load(){
 function homeScr(){
   const o=other(),inc=RQ.filter(r=>r.to_id===me&&r.status==='pending'),last=TX.find(t=>t.from_id===o||t.to_id===o);
   const tag=last?(last.from_id===me?'Last paid · '+fmt(last.amount):'Paid you · '+fmt(last.amount)):'★ Favourite';
-  return `<div class="scr" style="padding-bottom:120px"><div class="hd"><img src="logo-full.png" alt="zaks" style="height:30px;width:auto">${av(me)}</div>
-  ${notes.slice(0,3).map((n,i)=>`<div class="nt pop" role="status">${av(n.p,40)}<div class="x"><b>${esc(n.t)}</b>${n.m?`<span style="opacity:.8">“${esc(n.m)}”</span>`:''}</div><button data-act="dismiss" data-i="${i}" aria-label="Dismiss">${I.x}</button></div>`).join('')}
-  ${inc.map(r=>`<div class="req pop"><div style="display:flex;gap:12px;align-items:center">${av(r.from_id)}<div style="flex:1"><b>${esc(A[r.from_id]?.name)}</b> asks for<div class="amt" style="font-size:20px">OMR ${fmt(r.amount)}</div>${r.msg?`<span class="sm">“${esc(r.msg)}”</span>`:''}</div></div><div class="grid"><button class="btn alt" data-act="decline" data-r="${r.id}">Decline</button><button class="btn" data-act="payreq" data-r="${r.id}">Pay</button></div></div>`).join('')}
+  return `<div class="scr" style="padding-bottom:120px"><div class="hd"><img src="logo-full.png" alt="zaks" style="height:30px;width:auto"><button data-act="prof" aria-label="${t('Profile')}" style="border:none;background:none;padding:0;cursor:pointer;border-radius:50%">${av(me)}</button></div>
+  ${(PR.notif?notes:[]).slice(0,3).map((n,i)=>`<div class="nt pop" role="status">${av(n.p,40)}<div class="x"><b>${esc(n.t)}</b>${n.m?`<span style="opacity:.8">“${esc(n.m)}”</span>`:''}</div><button data-act="dismiss" data-i="${i}" aria-label="Dismiss">${I.x}</button></div>`).join('')}
+  ${inc.map(r=>`<div class="req pop"><div style="display:flex;gap:12px;align-items:center">${av(r.from_id)}<div style="flex:1"><b>${esc(A[r.from_id]?.name)}</b> ${t('asks for')}<div class="amt" style="font-size:20px">OMR ${fmt(r.amount)}</div>${r.msg?`<span class="sm">“${esc(r.msg)}”</span>`:''}</div></div><div class="grid"><button class="btn alt" data-act="decline" data-r="${r.id}">${t('Decline')}</button><button class="btn" data-act="payreq" data-r="${r.id}">${t('Pay')}</button></div></div>`).join('')}
   <div class="grid"><button class="t g" data-act="quick"><span style="display:inline-flex;padding:3px;border-radius:50%;background:#fff;align-self:flex-start">${av(o,52)}</span><span style="display:flex;flex-direction:column;gap:5px"><b>${esc(A[o]?.name||'')}</b><span style="background:#E0C08A;color:#14201C;font-weight:700;font-size:11px;padding:3px 8px;border-radius:999px;align-self:flex-start">${tag}</span></span></button>
-  <button class="t m" data-act="go" data-m="req"><b>Split a bill</b><span>Request money from ${esc(A[o]?.name||'')}</span></button></div>
-  <div class="bank"><div style="display:flex;flex-direction:column"><span class="sm">Linked bank</span><b>${esc(A[me]?.bank||'')}</b></div><span class="amt">OMR ${A[me]?fmt(A[me].balance):'…'}</span></div>
-  <span class="lbl"><span class="dot"></span>Activity · live</span>
-  ${TX.length?TX.slice(0,10).map(t=>{const out=t.from_id===me,p=out?t.to_id:t.from_id;return `<div class="li">${av(p)}<div class="x"><b style="font-size:15px">${out?'To':'From'} ${esc(A[p]?.name)}</b><span class="sm">${esc(t.msg||'')}${t.msg?' · ':''}${new Date(t.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span></div><span class="amt" style="color:${out?'#14201C':'#0B5A44'}">${out?'−':'+'}${fmt(t.amount)}</span></div>`}).join(''):'<span class="sm">Nothing yet. Tap Send to pay someone.</span>'}
-  <button class="btn alt" data-act="reset" style="margin-top:12px;min-height:44px;font-size:13px">Reset game (balances back to start)</button>
+  <button class="t m" data-act="split"><b>${t('Split a bill')}</b><span>${t('Request from friends')}</span></button></div>
+  <div class="bank"><div style="display:flex;flex-direction:column"><span class="sm">${t('Pay from')}</span><b>${accLabel(PR.from)}</b></div><span class="amt">OMR ${A[me]?fmt(A[me].balance):'…'}</span></div>
+  <span class="lbl"><span class="dot"></span>${t('Activity')}</span>
+  ${TX.length?TX.slice(0,10).map(t=>{const out=t.from_id===me,p=out?t.to_id:t.from_id;return `<div class="li">${av(p)}<div class="x"><b style="font-size:15px">${out?'To':'From'} ${esc(A[p]?.name)}</b><span class="sm">${esc(t.msg||'')}${t.msg?' · ':''}${new Date(t.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span></div><span class="amt" style="color:${out?'#14201C':'#0B5A44'}">${out?'−':'+'}${fmt(t.amount)}</span></div>`}).join(''):`<span class="sm">${t('Nothing yet. Tap Send to pay someone.')}</span>`}
   </div>${ui.toast?`<div class="toast" role="status">${esc(ui.toast)}</div>`:''}
-  <nav class="pillnav" aria-label="Pay actions"><button data-act="go" data-m="send">${I.send}Send</button><button data-act="go" data-m="req">${I.req}Request</button><button data-act="scan">${I.scan}Scan</button></nav>`;
+  <nav class="pillnav" aria-label="Pay actions"><button data-act="go" data-m="send">${I.send}${t('Send')}</button><button data-act="go" data-m="req">${I.req}${t('Request')}</button><button data-act="scan">${I.scan}${t('Scan')}</button></nav>`;
 }
 
 function render(){
   const o=other();let h='';
   if(!me||!KEY){app.innerHTML=`<div class="scr" style="justify-content:center;align-items:center;text-align:center;gap:16px"><img src="logo-stack.png" alt="zaks" style="width:200px"><b>Open your personal Zaks link.</b><span class="sm">This demo works with the link you were sent.</span></div>`;return}
   if(ui.scr==='lock'){
-    h=`<div class="scr" style="justify-content:center;align-items:center;gap:22px;background:#DDF0E8;min-height:100vh"><img src="logo-stack.png" alt="zaks" style="width:200px;max-width:60%">${av(me,96)}<b style="font-size:20px">Hi, ${esc(A[me]?.name||'')}</b><button class="btn" data-act="unlock">Unlock with Face ID</button><span class="sm">Demo · play money only</span></div>`;
+    h=`<div class="scr" style="justify-content:center;align-items:center;gap:22px;background:#DDF0E8;min-height:100vh"><img src="logo-stack.png" alt="zaks" style="width:200px;max-width:60%">${av(me,96)}<b style="font-size:20px">${t('Hi,')} ${esc(A[me]?.name||'')}</b><button class="btn" data-act="unlock">${t('Unlock with Face ID')}</button><span class="sm">Demo · play money only</span></div>`;
   }else if(ui.scr==='home'){h=homeScr()}
   else if(ui.scr==='pick'){
-    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button><b>${ui.mode==='send'?'Send to':'Request from'}</b><span style="width:44px"></span></div>
-    <span class="lbl">Suggested</span><button class="li" data-act="pick" style="cursor:pointer">${av(o)}<div class="x"><b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div></button></div>`;
+    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button><b>${t(ui.mode==='send'?'Send to':ui.split?'Split a bill with':'Request from')}</b><span style="width:44px"></span></div>
+    <span class="lbl">${t('Suggested')}</span><button class="li" data-act="pick" style="cursor:pointer">${av(o)}<div class="x"><b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div></button></div>`;
   }else if(ui.scr==='amt'){
     const ok=parseFloat(ui.amt)>0;
-    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Back">${I.back}</button><b>${ui.mode==='send'?'Send to':'Request from'}</b><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button></div>
-    <div class="who">${av(o,72)}<b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div>
-    <div style="flex:1;display:flex;align-items:center;justify-content:center"><div class="bigamt" style="color:${ui.amt?'#14201C':'#A9B1AC'}">${esc(ui.amt||'0')}<small>OMR</small></div></div>
-    <div class="msgrow"><input id="msg" placeholder="Add a message …" value="${esc(ui.msg)}" aria-label="Message" maxlength="60"><button class="btn" data-act="next" ${ok?'':'disabled'}>Next</button></div>
+    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Back">${I.back}</button><b>${t(ui.mode==='send'?'Send to':ui.split?'Split a bill with':'Request from')}</b><button class="iconbtn" data-act="home" aria-label="Close">${I.x}</button></div>
+    <div class="who">${av(o,72)}<b>${esc(A[o].name)}</b><span class="sm">${ui.split?'Enter the total bill. It is split 2 ways, including you.':esc(A[o].phone)}</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center"><div class="bigamt" style="color:${ui.amt?'#14201C':'#A9B1AC'}">${esc(ui.amt||'0')}<small>OMR</small></div>${ui.split&&ok?`<span class="sm" style="font-weight:600;color:#0B6B51">Each pays OMR ${fmt(half(+ui.amt))} · ÷ 2 incl. you</span>`:''}</div>
+    <div class="msgrow"><input id="msg" placeholder="${t('Add a message …')}" value="${esc(ui.msg)}" aria-label="Message" maxlength="60"><button class="btn" data-act="next" ${ok?'':'disabled'}>${t('Next')}</button></div>
     <div class="pad">${['1','2','3','4','5','6','7','8','9','.','0','del'].map(k=>`<button class="${k==='.'||k==='del'?'k':''}" data-act="key" data-k="${k}" aria-label="${k==='del'?'Delete':k}">${k==='del'?'⌫':k}</button>`).join('')}</div></div>`;
   }else if(ui.scr==='confirm'){
-    const a=+ui.amt,send=ui.mode==='send';
-    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="${ui.req?'home':'backamt'}" aria-label="Back">${I.back}</button><b>Confirm</b><span style="width:44px"></span></div>
+    const send=ui.mode==='send',a=ui.split&&!send?half(+ui.amt):+ui.amt;
+    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="${ui.req?'home':'backamt'}" aria-label="Back">${I.back}</button><b>${t('Confirm')}</b><span style="width:44px"></span></div>
     <div class="who" style="margin-top:16px">${av(o,72)}<b>${esc(A[o].name)}</b><span class="sm">${esc(A[o].phone)}</span></div>
-    <div class="bigamt">${fmt(a)}<small>OMR</small></div>
+    <div class="bigamt">${fmt(a)}<small>OMR</small></div>${ui.split&&!send?`<span class="sm" style="text-align:center">each · total bill OMR ${fmt(+ui.amt)} split 2 ways incl. you</span>`:''}
     ${ui.msg?`<p class="sm" style="text-align:center;margin:0">“${esc(ui.msg)}”</p>`:''}
-    <div class="li"><div class="x"><span class="sm">${send?'From':'Paid into'}</span><b>${esc(A[me].bank)} · current account</b></div></div>
-    <span class="sm" style="text-align:center">${send?'Instant and free to any bank in Oman.':`${esc(A[o].name)} gets the request in Zaks.`}</span>
-    <div style="flex:1"></div><button class="btn" data-act="${send?'dosend':'doreq'}" ${ui.busy?'disabled':''}>${send?`Send ${fmt(a)} OMR`:'Send request'}</button></div>`;
+    <div class="li"><div class="x"><span class="sm">${t(send?'From':'Paid into')}</span><b>${accLabel(send?PR.from:PR.to)}</b></div></div>
+    <span class="sm" style="text-align:center">${send?t('Instant and free to any bank in Oman.'):`${esc(A[o].name)} gets the request in Zaks.`}</span>
+    <div style="flex:1"></div><button class="btn" data-act="${send?'dosend':'doreq'}" ${ui.busy?'disabled':''}>${send?`Send ${fmt(a)} OMR`:t('Send request')}</button></div>`;
   }else if(ui.scr==='done'){
-    h=`<div class="scr" style="justify-content:center;gap:16px;text-align:center;min-height:100vh"><div style="position:relative;width:96px;margin:0 auto">${av(o,96)}<span class="ok">${I.check}</span></div><b style="font-size:22px">${esc(ui.doneT)}</b><span class="sm">${esc(ui.doneS)}</span><div style="height:40px"></div><button class="btn" data-act="home">Done</button></div>`;
+    h=`<div class="scr" style="justify-content:center;gap:16px;text-align:center;min-height:100vh"><div style="position:relative;width:96px;margin:0 auto">${av(o,96)}<span class="ok">${I.check}</span></div><b style="font-size:22px">${esc(ui.doneT)}</b><span class="sm">${esc(ui.doneS)}</span><div style="height:40px"></div><button class="btn" data-act="home">${t('Done')}</button></div>`;
+  }
+  else if(ui.scr==='prof'){
+    const inp=(id,label,val,type)=>`<label style="display:flex;flex-direction:column;gap:4px"><span class="sm">${label}</span><input id="${id}" type="${type}" value="${esc(val)}" maxlength="${type==='tel'?20:30}" style="height:48px;border-radius:12px;border:1px solid #D5DAD3;background:#fff;padding:0 14px;font-size:16px;color:#14201C"></label>`;
+    h=`<div class="scr"><div class="hd"><button class="iconbtn" data-act="home" aria-label="Back">${I.back}</button><b>${t('Profile')}</b><span style="width:44px"></span></div>
+    <div class="who">${av(me,88)}<b style="font-size:18px">${esc(A[me].name)}</b><span class="sm">${esc(A[me].phone)}</span></div>
+    <span class="lbl">${t('Personal details')}</span>
+    ${inp('pf-name',t('Name'),A[me].name,'text')}${inp('pf-phone',t('Mobile number'),A[me].phone,'tel')}
+    <button class="btn" data-act="psave">${t('Save changes')}</button>
+    <span class="lbl">${t('Bank accounts')}</span>
+    <span class="sm">${t('Pay from')}</span>${radio(PR.from==='cur','from','cur',accLabel('cur'))}${radio(PR.from==='sav','from','sav',accLabel('sav'))}
+    <span class="sm">${t('Receive into')}</span>${radio(PR.to==='cur','to','cur',accLabel('cur'))}${radio(PR.to==='sav','to','sav',accLabel('sav'))}
+    <span class="lbl">${t('Backup card')}</span>
+    <div class="li">${PR.card?`<span aria-hidden="true" style="width:46px;height:30px;border-radius:6px;flex:none;background:${PR.card.b==='Visa'?'#1A1F71':'#EB001B'};color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">${PR.card.b==='Visa'?'VISA':'MC'}</span><div class="x"><b style="font-size:15px">${PR.card.b} •••• ${PR.card.l}</b><span class="sm">${t('Used only if your bank is unavailable.')}</span></div>`:`<div class="x"><span class="sm">${t('No card added. A card is only a backup if your bank is unavailable.')}</span></div>`}</div>
+    <div class="grid"><button class="btn alt" data-act="pcard">${t(PR.card?'Replace card':'Add card')}</button>${PR.card?`<button class="btn alt" data-act="pcardrm">${t('Remove')}</button>`:''}</div>
+    <span class="lbl">${t('General')}</span>
+    <div class="li"><div class="x"><b style="font-size:15px">${t('Language')}</b></div><div style="display:flex;gap:4px;background:#ECEFEA;border-radius:999px;padding:4px">${[['en','English'],['ar','العربية']].map(([v,l])=>`<button data-act="plang" data-v="${v}" aria-pressed="${PR.lang===v}" style="border:none;border-radius:999px;min-height:36px;padding:0 12px;font:inherit;font-weight:600;cursor:pointer;${PR.lang===v?'background:#0B6B51;color:#fff':'background:transparent;color:#14201C'}">${l}</button>`).join('')}</div></div>
+    ${sw(PR.notif,'notif',t('Notifications'))}${sw(PR.fid,'fid',t('Face ID for payments'))}
+    <button class="btn alt" data-act="signout" style="color:#9B1C1C">${t('Sign out')}</button>
+    <span class="sm" style="text-align:center">Demo · play money · cards are fake</span>
+    </div>${ui.toast?`<div class="toast" role="status">${esc(ui.toast)}</div>`:''}`;
   }
   if(fid)h+=`<div class="ov"><div class="fid"><span class="scan">${I.face}</span>Face ID</div></div>`;
   const keepMsg=document.getElementById('msg');const focused=keepMsg&&document.activeElement===keepMsg;
-  app.innerHTML=h;
+  app.innerHTML=h;app.dir=PR.lang==='ar'?'rtl':'ltr';app.lang=PR.lang;
   if(focused){const m=document.getElementById('msg');m.focus();m.setSelectionRange(m.value.length,m.value.length)}
 }
 
-function faceid(fn){fid=true;render();setTimeout(async()=>{fid=false;await fn();render()},800)}
-const reset0=()=>Object.assign(ui,{scr:'home',amt:'',msg:'',req:null,busy:false});
+function faceid(fn){if(!PR.fid){(async()=>{await fn();render()})();return}fid=true;render();setTimeout(async()=>{fid=false;await fn();render()},800)}
+const reset0=()=>Object.assign(ui,{scr:'home',amt:'',msg:'',req:null,busy:false,split:false});
 
 document.addEventListener('input',e=>{if(e.target.id==='msg')ui.msg=e.target.value.slice(0,60)});
 document.addEventListener('click',async e=>{
@@ -161,8 +191,20 @@ document.addEventListener('click',async e=>{
   switch(d.act){
     case 'unlock':faceid(async()=>{ui.scr='home';await load()});return;
     case 'home':reset0();break;
-    case 'go':Object.assign(ui,{scr:'pick',mode:d.m,amt:'',msg:'',req:null});break;
-    case 'quick':Object.assign(ui,{scr:'amt',mode:'send',amt:'',msg:'',req:null});break;
+    case 'go':Object.assign(ui,{scr:'pick',mode:d.m,split:false,amt:'',msg:'',req:null});break;
+    case 'split':Object.assign(ui,{scr:'amt',mode:'req',split:true,amt:'',msg:'',req:null});break;
+    case 'prof':ui.scr='prof';break;
+    case 'psave':{const clean=v=>v.replace(/[<>&"'`]/g,'').trim();const n=clean(document.getElementById('pf-name').value).slice(0,30),ph=clean(document.getElementById('pf-phone').value).slice(0,20);
+      if(!n||ph.replace(/\D/g,'').length<8){ui.toast='Enter a name and a valid mobile number.';break}
+      try{await rpc('zaks_profile',{p_name:n,p_phone:ph});ui.toast=t('Saved')}catch(err){ui.toast='Save failed: '+err.message}
+      await load();break}
+    case 'pacc':PR[d.k]=d.v;saveP();break;
+    case 'pcard':{const i=PR.card?(DEMO_CARDS.findIndex(c=>c.l===PR.card.l)+1)%DEMO_CARDS.length:0;PR.card=DEMO_CARDS[i];saveP();break}
+    case 'pcardrm':PR.card=null;saveP();break;
+    case 'plang':PR.lang=d.v;saveP();break;
+    case 'ptog':PR[d.k]=!PR[d.k];saveP();break;
+    case 'signout':Object.assign(ui,{scr:'lock',amt:'',msg:'',req:null,split:false});break;
+    case 'quick':Object.assign(ui,{scr:'amt',mode:'send',split:false,amt:'',msg:'',req:null});break;
     case 'pick':ui.scr='amt';break;
     case 'backamt':ui.scr='amt';break;
     case 'scan':ui.toast='Scan a shop QR to pay: coming later.';break;
@@ -182,13 +224,11 @@ document.addEventListener('click',async e=>{
       }catch(err){reset0();ui.toast='Payment failed: '+err.message}
       load()});return}
     case 'doreq':{const a=+ui.amt;ui.busy=true;render();
-      try{await rpc('zaks_request',{p_to:other(),p_amount:a,p_msg:ui.msg});Object.assign(ui,{scr:'done',doneT:'Request sent',doneS:`${A[other()].name} gets it in Zaks right away.`,amt:'',msg:'',busy:false})}
+      try{await rpc('zaks_request',{p_to:other(),p_amount:ui.split?half(a):a,p_msg:ui.msg});Object.assign(ui,{scr:'done',doneT:'Request sent',doneS:`${A[other()].name} gets it in Zaks right away.`,amt:'',msg:'',busy:false})}
       catch(err){reset0();ui.toast='Request failed: '+err.message}
       load();break}
     case 'decline':try{await rpc('zaks_decline',{p_req:+d.r})}catch(err){ui.toast='Failed: '+err.message}await load();break;
     case 'dismiss':notes.splice(+d.i,1);break;
-    case 'reset':if(el.dataset.sure!=='1'){el.dataset.sure='1';el.textContent='Tap again to reset for both players';return}
-      try{await rpc('zaks_reset',{})}catch(err){ui.toast='Reset failed: '+err.message}notes=[];await load();break;
   }
   render();
 });
